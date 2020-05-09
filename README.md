@@ -57,5 +57,10 @@ Aggregation and comparison becomes difficult with log data.
 This script attempts to parse log file and push it to database. 
 Then it should be straight forward to see a trend using database queries.
 
+Usage 
 
-db.humcommerce.updateMany({METHOD:{$exists:1}},[{$set:{REQUEST_TIME:{$toDouble:"$REQUEST_TIME"}}}],{multi:true});
+```
+node index.js <logfilepath> <websitename>
+```
+
+Website name is used to store all log data into specific collection

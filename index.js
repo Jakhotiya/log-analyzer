@@ -33,17 +33,19 @@ function parseChunk(chunk) {
 }
 
 
-MongoClient.connect(url, function (err, conn) {
+MongoClient.connect(url,{ useUnifiedTopology: true }, function (err, conn) {
     if (err) throw err;
 
     let log = conn.db('nginx_log');
+    log.collection(website).createIndex({request:'text'});
+    log.collection(website).createIndex({time:1});
+    log.collection(website).createIndex({request_time:1});
 
 
-
-    let str = fs.createReadStream(filename, {encoding: 'utf8', flag: 'r'});
+    let stream = fs.createReadStream(filename, {encoding: 'utf8', flag: 'r',highWaterMark:1024*1024});
 
     let leftover;
-    str.on('data', (data) => {
+    stream.on('data', (data) => {
 
         let [lines, str] = parseChunk(leftover + data);
         leftover = str;
@@ -55,8 +57,9 @@ MongoClient.connect(url, function (err, conn) {
         if(lines.length===0){
             return;
         }
-
+        stream.pause();
         log.collection(website).insertMany(linesArr, (err, res) => {
+            stream.resume();
             if (err) {
                 console.log(err);
                 return;
@@ -66,7 +69,7 @@ MongoClient.connect(url, function (err, conn) {
 
     });
 
-    str.on('end', (data) => {
+    stream.on('end', (data) => {
         let [lines, str] = parseChunk(leftover + data);
 
         if(lines.length===0){
@@ -90,7 +93,7 @@ MongoClient.connect(url, function (err, conn) {
 
     });
 
-    str.on('error', (err) => {
+    stream.on('error', (err) => {
         console.log(err);
     });
 
