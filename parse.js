@@ -6,9 +6,13 @@ let boundaries = ['client=','method=','request=','request_length=','status=',
     'upstream_addr=','upstream_status=','request_time=',
     'upstream_response_time=','upstream_connect_time=','upstream_header_time='];
 
-let headers = boundaries.map(d=>d.slice(0,d.length-1).toUpperCase());
+let headers = boundaries.map(d=>d.slice(0,d.length-1));
 
 headers.unshift('TIME');
+
+function shouldBeNumber(prop){
+    return -1!==['request_length','status','bytes_sent','request_time','upstream_response_time'].indexOf(prop);
+}
 
  function parse(line){
 
@@ -25,9 +29,12 @@ headers.unshift('TIME');
     res.push(line);
     let obj = {};
     for(let i=0;i<headers.length;i++){
-        obj[headers[i]] = res[i];
+
+        obj[headers[i]] = shouldBeNumber(headers[i]) ? parseFloat(res[i]) :  res[i];
+
      }
      obj['TIME'] = getDate(obj['TIME']);
+
     return obj;
 
 };

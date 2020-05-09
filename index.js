@@ -39,6 +39,7 @@ MongoClient.connect(url, function (err, conn) {
     let log = conn.db('nginx_log');
 
 
+
     let str = fs.createReadStream(filename, {encoding: 'utf8', flag: 'r'});
 
     let leftover;
