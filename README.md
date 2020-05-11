@@ -64,3 +64,55 @@ node index.js <logfilepath> <websitename>
 ```
 
 Website name is used to store all log data into specific collection
+
+Following aggregation pipeline answers the question "What's the low time for the server".
+The aggregation gives number of requests for hours of the day. We could add a match stage
+before project to process only for a particular date 
+
+```javascript
+db.collectionName.aggregate([{$project:{hour:{$hour:'$time'}}},{$group:{_id:'$hour',total:{$sum:1}}}]);
+```
+
+After running this on 2 days of log I get following output
+```
+{ "_id" : 0, "total" : 75192 }
+{ "_id" : 1, "total" : 79418 }
+{ "_id" : 2, "total" : 79885 }
+{ "_id" : 3, "total" : 165685 }
+{ "_id" : 4, "total" : 193489 }
+{ "_id" : 5, "total" : 188115 }
+{ "_id" : 6, "total" : 196378 }
+{ "_id" : 7, "total" : 202989 }
+{ "_id" : 8, "total" : 235385 }
+{ "_id" : 9, "total" : 260271 }
+{ "_id" : 10, "total" : 270014 }
+{ "_id" : 11, "total" : 273429 }
+{ "_id" : 12, "total" : 236463 }
+{ "_id" : 13, "total" : 131028 }
+{ "_id" : 14, "total" : 128069 }
+{ "_id" : 15, "total" : 123332 }
+{ "_id" : 16, "total" : 115091 }
+{ "_id" : 17, "total" : 263952 }
+{ "_id" : 18, "total" : 304178 }
+{ "_id" : 19, "total" : 291135 }
+{ "_id" : 20, "total" : 127750 }
+{ "_id" : 21, "total" : 87385 }
+{ "_id" : 22, "total" : 81727 }
+{ "_id" : 23, "total" : 81231 }
+```
+
+This tell me server has relatively less traffic between 9 PM to 2 AM EST time.
+Be aware of the timezone.
+
+
+#### Find all requests which took more than 3 seconds.
+
+These can later be used output urls to csv files. I use these csv files for load testing with Jmeter
+
+```javascript
+db.collectionName.find({time:{$gte:new Date('2020-04-30')},request:{$regex:/GET\s\/index\.php\?/},request_time:{$gte:3}}).pretty();
+```
+
+```bash
+node to-csv.js load.csv humdash '2020-04-30' 
+```
